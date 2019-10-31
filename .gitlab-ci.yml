@@ -1,0 +1,4 @@
+# DO NOT MODIFY THIS FILE OR YOU RISK MESSING UP THE LINTER/VALIDATOR OUTPUT
+include:
+  - project: 'cse154-19au-students/hw3-ci'
+    file: '.gitlab-ci-linters.yml'
