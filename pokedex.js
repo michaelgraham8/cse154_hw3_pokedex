@@ -12,7 +12,7 @@
 (function() {
 
   const POKEDEX_API = "https://courses.cs.washington.edu/courses/cse154/webservices/pokedex/";
-
+  const MAX_MOVES = 4;
   window.addEventListener("load", init);
 
   /**
@@ -36,7 +36,7 @@
 
   /**
    * Splits the passed in text by line. Returns it as an array of strings
-   * @param {plain text} text - Text that is to be split up
+   * @param {string} text - Text that is to be split up
    * @return {array} - Array of strings consisting of the passed-in text split by line
    */
   function splitLines(text) {
@@ -50,7 +50,6 @@
   function fillBoard(response) {
     for (let i = 0; i < response.length; i++) {
       let names = response[i].split(":");
-      let fullName = names[names.length - 2];
       let shortName = names[names.length - 1];
 
       let sprite = gen("img");
@@ -93,7 +92,7 @@
 
   /**
    * Fills the P1 Card view with information on the selected pokemon
-   * @param {JSON Object} response - Information on the selected pokemon represented as a JSON
+   * @param {Object} response - Information on the selected pokemon represented as a JSON
    * object
    */
   function fillCard(response) {
@@ -110,16 +109,17 @@
 
     for (let i = 0; i < movesArray.length; i++) {
       id("p1").querySelectorAll(".move")[i].textContent = movesArray[i].name;
-      id("p1").querySelector(".moves").querySelectorAll("img")[i].src = POKEDEX_API + "icons/" + movesArray[i].type + ".jpg";
+      id("p1").querySelector(".moves").querySelectorAll("img")[i].src = POKEDEX_API + "icons/" +
+      movesArray[i].type + ".jpg";
 
-      if (response.moves[i].hasOwnProperty("dp")) {
+      if ("dp" in response.moves[i]) {
         id("p1").querySelectorAll(".dp")[i].textContent = movesArray[i].dp + " DP";
       } else {
         id("p1").querySelectorAll(".dp")[i].textContent = "";
       }
     }
 
-    if (movesArray.length < 4) {
+    if (movesArray.length < MAX_MOVES) {
       for (let i = 3; i >= movesArray.length; i--) {
         id("p1").querySelector(".moves").querySelectorAll("button")[i].classList.add("hidden");
       }
@@ -160,15 +160,6 @@
    */
   function id(id) {
     return document.getElementById(id);
-  }
-
-  /**
-   * Returns the array of elements that match the given CSS selector.
-   * @param {string} selector - CSS query selector
-   * @returns {object[]} array of DOM objects matching the query.
-   */
-  function qsa(selector) {
-    return document.querySelectorAll(selector);
   }
 
   /**
