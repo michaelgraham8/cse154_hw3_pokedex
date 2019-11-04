@@ -109,8 +109,8 @@
 
     for (let i = 0; i < movesArray.length; i++) {
       id("p1").querySelectorAll(".move")[i].textContent = movesArray[i].name;
-      id("p1").querySelector(".moves").querySelectorAll("img")[i].src = POKEDEX_API + "icons/" +
-      movesArray[i].type + ".jpg";
+      id("p1").querySelector(".moves")
+        .querySelectorAll("img")[i].src = POKEDEX_API + "icons/" + movesArray[i].type + ".jpg";
 
       if ("dp" in response.moves[i]) {
         id("p1").querySelectorAll(".dp")[i].textContent = movesArray[i].dp + " DP";
@@ -121,11 +121,13 @@
 
     if (movesArray.length < MAX_MOVES) {
       for (let i = 3; i >= movesArray.length; i--) {
-        id("p1").querySelector(".moves").querySelectorAll("button")[i].classList.add("hidden");
+        id("p1").querySelector(".moves")
+          .querySelectorAll("button")[i].classList.add("hidden");
       }
     } else {
       for (let i = 0; i < movesArray.length; i++) {
-        id("p1").querySelector(".moves").querySelectorAll("button")[i].classList.remove("hidden");
+        id("p1").querySelector(".moves")
+          .querySelectorAll("button")[i].classList.remove("hidden");
       }
     }
   }
