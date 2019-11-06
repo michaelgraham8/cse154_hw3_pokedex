@@ -10,28 +10,61 @@
  */
 "use strict";
 (function() {
-
-  const POKEDEX_API = "https://courses.cs.washington.edu/courses/cse154/webservices/pokedex/";
-  const MAX_MOVES = 4;
   window.addEventListener("load", init);
+
+  const API_URL = "https://courses.cs.washington.edu/courses/cse154/webservices/pokedex/";
+  const MAX_MOVES = 4;
+
+  let gameId;
+  let playerId;
 
   /**
    * Function that initializes the pokedex by filling it with all 151 pokemon
    */
   function init() {
     fillPokedex();
+    id("start-btn").addEventListener("click", startGame);
   }
 
   /**
    * Pulls and processes pokemon data from the Pokemon API in order to fill the Pokedex board
    */
   function fillPokedex() {
-    fetch(POKEDEX_API + "pokedex.php?pokedex=all")
+    fetch(API_URL + "pokedex.php?pokedex=all")
       .then(checkStatus)
       .then(response => response.text())
       .then(splitLines)
       .then(fillBoard)
       .catch(console.error);
+  }
+
+  function startGame() {
+    showGameView();
+    fetch(API_URL, {method: "POST", body: data})
+      .then(checkStatus)
+      .then(resp => resp.json)
+      .then(processPost)
+      .catch(console.error);
+  }
+
+  function showGameView() {
+    id("pokedex-view").classList.toggle("hidden");
+    id("p2").classList.toggle("hidden");
+    getChildElement("p1", "div", 2).classList.toggle("hidden");
+    id("results-container").classList.toggle("hidden");
+    id("flee-btn").classList.toggle("hidden");
+
+    for (let i = 0; i < 4; i++) {
+      let button = id("p1").querySelector(".moves").querySelectorAll("button")[i];
+      if(!(button.classList.contains("hidden"))) {
+        button.disabled = false;
+      }
+    }
+    qs("h1").textContent = "Pokemon Battle Mode!";
+  }
+
+  function processPost() {
+    console.log("Hi");
   }
 
   /**
@@ -55,7 +88,7 @@
       let sprite = gen("img");
       sprite.classList.add("sprite");
       sprite.id = shortName;
-      sprite.src = POKEDEX_API + "sprites/" + shortName + ".png";
+      sprite.src = API_URL + "sprites/" + shortName + ".png";
       sprite.alt = shortName;
       id("pokedex-view").appendChild(sprite);
     }
@@ -83,11 +116,15 @@
    * @param {string} name - Name of the pokemon that who's data is being fetched
    */
   function getData(name) {
-    fetch(POKEDEX_API + "pokedex.php?pokemon=" + name)
+    fetch(API_URL + "pokedex.php?pokemon=" + name)
       .then(checkStatus)
       .then(response => response.json())
-      .then(fillCard)
+      .then(passAlong)
       .catch(console.error);
+  }
+
+  function passAlong(response) {
+    fillCard(response, "p1");
   }
 
   /**
@@ -95,12 +132,12 @@
    * @param {Object} response - Information on the selected pokemon represented as a JSON
    * object
    */
-  function fillCard(response) {
+  function fillCard(response, player) {
     qs(".name").textContent = response.name;
 
-    qs(".pokepic").src = POKEDEX_API + response.images.photo;
-    qs(".type").src = POKEDEX_API + response.images.typeIcon;
-    qs(".weakness").src = POKEDEX_API + response.images.weaknessIcon;
+    qs(".pokepic").src = API_URL + response.images.photo;
+    qs(".type").src = API_URL + response.images.typeIcon;
+    qs(".weakness").src = API_URL + response.images.weaknessIcon;
 
     qs(".hp").textContent = response.hp + "HP";
     qs(".info").textContent = response.info.description;
@@ -108,25 +145,25 @@
     let movesArray = response.moves;
 
     for (let i = 0; i < movesArray.length; i++) {
-      id("p1").querySelectorAll(".move")[i].textContent = movesArray[i].name;
-      id("p1").querySelector(".moves")
-        .querySelectorAll("img")[i].src = POKEDEX_API + "icons/" + movesArray[i].type + ".jpg";
+      getChildElement(player, ".move", i).textContent = movesArray[i].name;
+      id(player).querySelector(".moves")
+        .querySelectorAll("img")[i].src = API_URL + "icons/" + movesArray[i].type + ".jpg";
 
       if ("dp" in response.moves[i]) {
-        id("p1").querySelectorAll(".dp")[i].textContent = movesArray[i].dp + " DP";
+        getChildElement(player, ".dp", i).textContent = movesArray[i].dp + " DP";
       } else {
-        id("p1").querySelectorAll(".dp")[i].textContent = "";
+        getChildElement(player, ".dp", i).textContent = "";
       }
     }
 
     if (movesArray.length < MAX_MOVES) {
       for (let i = 3; i >= movesArray.length; i--) {
-        id("p1").querySelector(".moves")
+        id(player).querySelector(".moves")
           .querySelectorAll("button")[i].classList.add("hidden");
       }
     } else {
       for (let i = 0; i < movesArray.length; i++) {
-        id("p1").querySelector(".moves")
+        id(player).querySelector(".moves")
           .querySelectorAll("button")[i].classList.remove("hidden");
       }
     }
@@ -171,6 +208,11 @@
    */
   function qs(selector) {
     return document.querySelector(selector);
+  }
+
+  function getChildElement(parentId, tag, index) {
+    let children = id(parentId).querySelectorAll(tag);
+    return children[index];
   }
 
 })();
