@@ -4,9 +4,8 @@
  * Section AL - Tal Wolman
  * HW3
  *
- * This is the JavaScript that provides interactivity to pokemon.html in order to have Pokemon
- * battles. So far, I've implemented funtions to fill the board, select discovered pokemon, and
- * display their information in the card view
+ * This is the JavaScript that provides interactivity to pokemon.html in order to simulate Pokemon
+ * battles
  */
 "use strict";
 (function() {
@@ -34,7 +33,7 @@
     });
     id("endgame").addEventListener("click", resetGame);
     id("flee-btn").addEventListener("click", function() {
-      executeMove("flee");
+      executeFlee();
     });
   }
 
@@ -133,20 +132,32 @@
       }
 
     }
+      hideButtons(movesArray, player);
+  }
 
-    if (movesArray.length < MAX_MOVES) {
-      for (let i = 3; i >= movesArray.length; i--) {
+  /**
+   * This function hides any move buttons that are not being filled by a pokemon's moveset
+   * @param {array} moves - Array of the selected pokemon's moves
+   * @param {player} string - Which player's buttons are being hidden. Either p1 or p2
+   */
+  function hideButtons(moves, player) {
+    if (moves.length < MAX_MOVES) {
+      for (let i = 3; i >= moves.length; i--) {
         id(player).querySelector(".moves")
           .querySelectorAll("button")[i].classList.add("hidden");
       }
     } else {
-      for (let i = 0; i < movesArray.length; i++) {
+      for (let i = 0; i < moves.length; i++) {
         id(player).querySelector(".moves")
           .querySelectorAll("button")[i].classList.remove("hidden");
       }
     }
   }
 
+  /**
+   * This function starts a game by displaying the game view and fetching game data from
+   * the game API
+   */
   function startGame() {
     showGameView();
 
@@ -160,6 +171,9 @@
       .catch(console.error);
   }
 
+  /**
+   * This function shows the correct game view by hiding and revealing certain elements
+   */
   function showGameView() {
     id("p1-turn-results").textContent = "";
     id("p2-turn-results").textContent = "";
@@ -167,21 +181,20 @@
     id("p2").classList.toggle("hidden");
     getChildElement("p1", "div", 2).classList.toggle("hidden");
     id("results-container").classList.toggle("hidden");
-    id("p1-turn-results").classList.toggle("hidden");
-    id("p2-turn-results").classList.toggle("hidden");
+    id("p1-turn-results").classList.remove("hidden");
+    id("p2-turn-results").classList.remove("hidden");
     id("flee-btn").classList.toggle("hidden");
     id("start-btn").classList.add("hidden");
 
-    let buttonArray = id("p1").querySelector(".moves")
-      .querySelectorAll("button");
+    let buttonArray = qsa("#p1 .moves > button");
 
-    let movesArray = id("p1").querySelectorAll(".move");
+    let movesArray = qsa("#p1 .move");
     for (let i = 0; i < buttonArray.length; i++) {
       if (!(buttonArray[i].classList.contains("hidden"))) {
         buttonArray[i].disabled = false;
         let move = movesArray[i].textContent;
         buttonArray[i].addEventListener("click", function() {
-          executeMove(move);
+          executeMove(i);
         });
       }
     }
@@ -189,6 +202,10 @@
     getChildElement("p1", "div", 0).classList.toggle("hidden");
   }
 
+  /**
+   * This function processes the fetch response called in startGame
+   * @param {Object} response - JSON object that contains data on the current game state
+   */
   function processPost(response) {
     gameId = response.guid;
     playerId = response.pid;
@@ -196,14 +213,35 @@
     getData(enemy, "p2");
   }
 
-  function executeMove(move) {
+  /**
+   * This function executes the move in the given index of an array of moves by passing it on
+   * to be fetched by the game API
+   * @param {integer} index - Index in an array containing a pokemons move set
+   */
+  function executeMove(index) {
+    let move = qsa("#p1 .move")[index].textContent;
     id("loading").classList.toggle("hidden");
-    id("p1").querySelector(".buffs").innerHTML = "";
-    id("p2").querySelector(".buffs").innerHTML = "";
     getMoveData(move);
   }
 
+  /**
+   * This function causes a player's pokemon ot flee by passing the flee move on to the game API
+   */
+  function executeFlee() {
+    id("loading").classList.toggle("hidden");
+    getMoveData("flee")
+  }
+
+  /**
+   * This function submits a fetch request to the game API to simulate a pokemon's move taking
+   * place. The fetch request responds with data on the current gamestate after each player takes
+   * their turn
+   * @param {string} move - Name of the move the pokemon is taking
+   */
   function getMoveData(move) {
+    id("p1").querySelector(".buffs").innerHTML = "";
+    id("p2").querySelector(".buffs").innerHTML = "";
+
     let params = new FormData();
     params.append("guid", gameId);
     params.append("pid", playerId);
@@ -218,6 +256,12 @@
       .catch(console.error);
   }
 
+  /**
+   * This function processes the response of the fetch request in getMoveData and uses it to
+   * update the game state
+   * @param {Object} response - JSON object conatining data on the game state after both players
+   * take their turn
+   */
   function processResponse(response) {
     displayResults(response);
     updateHealth(response, "p1");
@@ -228,6 +272,11 @@
     showBuffs(response, "p2", "debuffs");
   }
 
+  /**
+   * This function displays the results of each player's move in their move results box
+   * @param {Object} response - JSON object conatining data on the game state after both players
+   * take their turn
+   */
   function displayResults(response) {
     let p1Response = "Player 1 played " + response.results["p1-move"] + " and " +
     response.results["p1-result"] + "!";
@@ -241,6 +290,13 @@
     id("p2-turn-results").textContent = p2Response;
   }
 
+  /**
+   * This function updates the health bar of the passed-in player with the results of the most
+   * recent moves
+   * @param {Object} response - JSON object conatining data on the game state after both players
+   * take their turn
+   * @param {String} player - Player whos health bar is being updated
+   */
   function updateHealth(response, player) {
     let newHealth = response[player]["current-hp"];
     id(player).querySelector(".hp").textContent = newHealth + "HP";
@@ -258,11 +314,19 @@
     }
   }
 
+  /**
+   * This function displays the results of a game once one player's healthbar reaches 0. This
+   * includes a message on if you won or lost
+   * @param {String} player - Player who's healthbar hit zero
+   */
   function endGame(player) {
     if (player === "p1") {
       qs("h1").textContent = "You lost!";
     } else {
       qs("h1").textContent = "You won!";
+      if (!(id(opponent).classList.contains("found"))) {
+        findPokemon(opponent);
+      }
     }
     id("endgame").classList.remove("hidden");
     id("flee-btn").classList.add("hidden");
@@ -272,6 +336,9 @@
     }
   }
 
+  /**
+   * This function resets the game so it can be played again
+   */
   function resetGame() {
     id("pokedex-view").classList.toggle("hidden");
     id("endgame").classList.toggle("hidden");
@@ -289,12 +356,17 @@
     qs("#p2 .health-bar").style.width = '100%';
     qs("#p2 .hp").textContent = originalHp + "HP";
     qs("#p2 .health-bar").classList.remove("low-health");
-
-    if (!(id(opponent).classList.contains("found"))) {
-      findPokemon(opponent);
-    }
   }
 
+  /**
+   * This function displays the status effects applied to the passed-in player by the most
+   * recent move
+   * @param {Object} response - JSON object conatining data on the game state after both players
+   * take their turn
+   * @param {String} player - Player getting the buffs/debuffs
+   * @param {String} array - Type of effect being applied, either "buffs" or "debuffs"
+   *
+   */
   function showBuffs(response, player, array) {
     let buffArray = response[player][array];
     for (let i = 0; i < buffArray.length; i++) {
@@ -306,7 +378,7 @@
         newBuff.classList.add("debuff");
       }
       id(player).querySelector(".buffs")
-      .appendChild(newBuff);
+        .appendChild(newBuff);
     }
   }
 
@@ -360,11 +432,24 @@
     return document.querySelector(selector);
   }
 
+  /**
+   * This function returns the child of the passed-in parent element that is at the given index
+   * of an array of the passed in-tag
+   * @param {String} parentID - ID of the parent element of the element we are trying to access
+   * @param {String} tag - Tag of the element we are trying to access
+   * @param {Integer} index - Index of the qsa array that we are trying to access
+   * @return {object} DOM element matching the parameters
+   */
   function getChildElement(parentId, tag, index) {
     let children = id(parentId).querySelectorAll(tag);
     return children[index];
   }
 
+  /**
+   * This helper function returns an array of elements that match the given CSS selector
+   * @param {String} selector - CSS query selector
+   * @return {Array} Array of DOM elements matching the given CSS selector
+   */
   function qsa(selector) {
     return document.querySelectorAll(selector);
   }
