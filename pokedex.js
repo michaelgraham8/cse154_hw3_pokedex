@@ -14,6 +14,9 @@
 
   const API_URL = "https://courses.cs.washington.edu/courses/cse154/webservices/pokedex/";
   const MAX_MOVES = 4;
+  const LOW_HEALTH = 20;
+  const PCT_NUMBER = 100;
+  const STARTER_POKEMON = ["bulbasaur", "charmander", "squirtle"];
 
   let gameId;
   let playerId;
@@ -64,9 +67,9 @@
       id("pokedex-view").appendChild(sprite);
     }
 
-    findPokemon("bulbasaur");
-    findPokemon("charmander");
-    findPokemon("squirtle");
+    for (let i = 0; i < STARTER_POKEMON.length; i++) {
+      findPokemon(STARTER_POKEMON[i]);
+    }
   }
 
   /**
@@ -170,7 +173,7 @@
     id("start-btn").classList.add("hidden");
 
     let buttonArray = id("p1").querySelector(".moves")
-    .querySelectorAll("button");
+      .querySelectorAll("button");
 
     let movesArray = id("p1").querySelectorAll(".move");
     for (let i = 0; i < buttonArray.length; i++) {
@@ -226,35 +229,37 @@
   }
 
   function displayResults(response) {
-    let p1Response = "Player 1 played " + response.results["p1-move"] + " and " + response.results["p1-result"] + "!";
+    let p1Response = "Player 1 played " + response.results["p1-move"] + " and " +
+    response.results["p1-result"] + "!";
     id("p1-turn-results").textContent = p1Response;
 
     if (response.results["p2-move"] === null || response.results["p2-result"] === null) {
       id("p2-turn-results").classList.add("hidden");
     }
-    let p2Response = "Player 2 played " + response.results["p2-move"] + " and " + response.results["p2-result"] + "!";
+    let p2Response = "Player 2 played " + response.results["p2-move"] + " and " +
+    response.results["p2-result"] + "!";
     id("p2-turn-results").textContent = p2Response;
   }
 
   function updateHealth(response, player) {
     let newHealth = response[player]["current-hp"];
     id(player).querySelector(".hp").textContent = newHealth + "HP";
-    let healthPct = (newHealth * 100/ response[player].hp) + '%';
+    let healthPct = (newHealth * PCT_NUMBER / response[player].hp) + '%';
     id(player).querySelector(".health-bar").style.width = healthPct;
 
-    if (parseFloat(healthPct) < 20) {
+    if (parseFloat(healthPct) < LOW_HEALTH) {
       id(player).querySelector(".health-bar").classList.add("low-health");
     } else {
       id(player).querySelector(".health-bar").classList.remove("low-health");
     }
 
-    if(parseFloat(healthPct) === 0) {
+    if (parseFloat(healthPct) === 0) {
       endGame(player);
     }
   }
 
   function endGame(player) {
-    if(player === "p1") {
+    if (player === "p1") {
       qs("h1").textContent = "You lost!";
     } else {
       qs("h1").textContent = "You won!";
@@ -262,7 +267,7 @@
     id("endgame").classList.remove("hidden");
     id("flee-btn").classList.add("hidden");
 
-    for(let i = 0; i < qsa(".move").length; i++) {
+    for (let i = 0; i < qsa(".move").length; i++) {
       qsa("div.moves > button")[i].disabled = true;
     }
   }
@@ -295,12 +300,13 @@
     for (let i = 0; i < buffArray.length; i++) {
       let newBuff = gen("div");
       newBuff.classList.add(buffArray[i]);
-      if(array === "buffs") {
+      if (array === "buffs") {
         newBuff.classList.add("buff");
       } else {
         newBuff.classList.add("debuff");
       }
-      id(player).querySelector(".buffs").appendChild(newBuff)
+      id(player).querySelector(".buffs")
+      .appendChild(newBuff);
     }
   }
 
