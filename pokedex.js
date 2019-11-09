@@ -189,8 +189,6 @@
     id("start-btn").classList.add("hidden");
 
     let buttonArray = qsa("#p1 .moves > button");
-
-    let movesArray = qsa("#p1 .move");
     for (let i = 0; i < buttonArray.length; i++) {
       if (!(buttonArray[i].classList.contains("hidden"))) {
         buttonArray[i].disabled = false;
