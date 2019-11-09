@@ -86,6 +86,7 @@
   /**
    * Pulls and processed infomation on a specific pokemon from the Pokedex API
    * @param {string} name - Name of the pokemon that who's data is being fetched
+   * @param {String} player - Player whos pokemons data is being fetched
    */
   function getData(name, player) {
     fetch(API_URL + "pokedex.php?pokemon=" + name)
@@ -101,6 +102,7 @@
    * Fills the P1 Card view with information on the selected pokemon
    * @param {Object} response - Information on the selected pokemon represented as a JSON
    * object
+   * @param {String} player - Player whos player card is being filled
    */
   function fillCard(response, player) {
     id(player).querySelector(".name").textContent = response.name;
@@ -132,13 +134,13 @@
       }
 
     }
-      hideButtons(movesArray, player);
+    hideButtons(movesArray, player);
   }
 
   /**
    * This function hides any move buttons that are not being filled by a pokemon's moveset
    * @param {array} moves - Array of the selected pokemon's moves
-   * @param {player} string - Which player's buttons are being hidden. Either p1 or p2
+   * @param {String} player - Which player's buttons are being hidden. Either p1 or p2
    */
   function hideButtons(moves, player) {
     if (moves.length < MAX_MOVES) {
@@ -192,7 +194,6 @@
     for (let i = 0; i < buttonArray.length; i++) {
       if (!(buttonArray[i].classList.contains("hidden"))) {
         buttonArray[i].disabled = false;
-        let move = movesArray[i].textContent;
         buttonArray[i].addEventListener("click", function() {
           executeMove(i);
         });
@@ -229,7 +230,7 @@
    */
   function executeFlee() {
     id("loading").classList.toggle("hidden");
-    getMoveData("flee")
+    getMoveData("flee");
   }
 
   /**
@@ -435,7 +436,7 @@
   /**
    * This function returns the child of the passed-in parent element that is at the given index
    * of an array of the passed in-tag
-   * @param {String} parentID - ID of the parent element of the element we are trying to access
+   * @param {String} parentId - ID of the parent element of the element we are trying to access
    * @param {String} tag - Tag of the element we are trying to access
    * @param {Integer} index - Index of the qsa array that we are trying to access
    * @return {object} DOM element matching the parameters
