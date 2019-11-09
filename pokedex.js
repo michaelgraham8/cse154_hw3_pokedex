@@ -32,7 +32,7 @@
     id("endgame").addEventListener("click", resetGame);
     id("flee-btn").addEventListener("click", function() {
       executeMove("flee");
-    })
+    });
   }
 
   /**
@@ -64,9 +64,9 @@
       id("pokedex-view").appendChild(sprite);
     }
 
-    findPokemon("bulbasaur", "p1");
-    findPokemon("charmander", "p1");
-    findPokemon("squirtle", "p1");
+    findPokemon("bulbasaur");
+    findPokemon("charmander");
+    findPokemon("squirtle");
   }
 
   /**
@@ -74,7 +74,7 @@
    * adding an event listener for when its clicked
    * @param {string} name - Name of the pokemon that has been discovered
    */
-  function findPokemon(name, player) {
+  function findPokemon(name) {
     id(name).classList.add("found");
     id(name).addEventListener("click", function() {
       getData(name, "p1");
@@ -102,14 +102,13 @@
    */
   function fillCard(response, player) {
     id(player).querySelector(".name").textContent = response.name;
-    if(player === "p1") {
+    if (player === "p1") {
       id("start-btn").classList.remove("hidden");
       myPokemon = response.shortname;
       originalHp = response.hp;
     } else {
       opponent = response.shortname;
     }
-
 
     id(player).querySelector(".pokepic").src = API_URL + response.images.photo;
     id(player).querySelector(".type").src = API_URL + response.images.typeIcon;
@@ -170,7 +169,8 @@
     id("flee-btn").classList.toggle("hidden");
     id("start-btn").classList.add("hidden");
 
-    let buttonArray = id("p1").querySelector(".moves").querySelectorAll("button");
+    let buttonArray = id("p1").querySelector(".moves")
+    .querySelectorAll("button");
 
     let movesArray = id("p1").querySelectorAll(".move");
     for (let i = 0; i < buttonArray.length; i++) {
@@ -189,8 +189,8 @@
   function processPost(response) {
     gameId = response.guid;
     playerId = response.pid;
-    let opponent = response.p2.name;
-    getData(opponent, "p2");
+    let enemy = response.p2.name;
+    getData(enemy, "p2");
   }
 
   function executeMove(move) {
